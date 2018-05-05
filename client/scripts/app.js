@@ -5,23 +5,33 @@ app.server = 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages';
   
 app.username = window.location.search.split('=')[1];
 
-app.roomname = $('#roomSelect option:selected' ).text();
-
 app.friends = {};
 
 app.inited = false;
-  
+
 app.init = function() {
   
   if (app.inited) {
     return;
   }
   app.inited = true;
+  
   $(document).ready(function() {
     
     $('#send').on('submit', function(event) {
       event.preventDefault();
       app.handleSubmit();
+    });
+    
+    $('#roomSelect').change(function() {
+      app.fetch();       
+    });
+    
+    $('.addRoom').on('click', function(event) {
+      var newRoomName = $('.newRoom').val();
+      var newRoom = $('<option>', {'text': newRoomName});
+      newRoom.appendTo('#roomSelect');
+      $('.newRoom').val('');
     });
   });
   
@@ -30,19 +40,23 @@ app.init = function() {
 app.fetch = function() {
   thisapp = this;
   var filter = {'order': '-createdAt'};
+  
   $.ajax({
-    // This is the url you should use to communicate with the parse API server.
     url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages',
     type: 'GET',
     data: filter,
     contentType: 'application/json',
     success: function (data) {
       
-      thisapp.clearMessages();
-      
+      thisapp.clearMessages();     
       for (var message of data['results']) {
-        thisapp.renderMessage(message);
+        console.log(thisapp.roomname);
+        if ($('#roomSelect option:selected').text() === message['roomname']) {
+          thisapp.renderMessage(message);
+        }
+        
       }
+      
       $('form').removeClass('spinner');
       $('img').remove();
       console.log('chatterbox: Message received');
@@ -55,9 +69,8 @@ app.fetch = function() {
 };
   
 app.send = function(message) {
-  
+  thisapp = this;
   $.ajax({
-    // This is the url you should use to communicate with the parse API server.
     url: 'http://parse.sfm8.hackreactor.com/chatterbox/classes/messages',
     type: 'POST',
     data: JSON.stringify(message),
@@ -66,7 +79,7 @@ app.send = function(message) {
       $('form').addClass('spinner');
       $('form').append('<img>');
       $('img').attr('src', 'images/spiffygif_46x46.gif');
-      app.fetch();
+      thisapp.fetch();
       console.log('chatterbox: Message sent');
     },
     error: function (data) {
@@ -101,7 +114,6 @@ app.renderMessage = function(message) {
   $('.username').on('click', function() {
     var username = $(this).text();
     app.handleUsernameClick(username);
-    app.fetch();
   });
 };
   
@@ -111,14 +123,16 @@ app.renderRoom = function(room) {
 
 app.handleUsernameClick = function(username) {
   this.friends[username] = true;
+  app.send();
 };
 
 app.handleSubmit = function() {
   var message = {};
   message.username = this.username;
-  message.text = $('input').val();
-  message.roomname = this.roomname;
-
+  message.text = $('.addMessage').val();
+  message.roomname = $('#roomSelect option:selected').text();
+  $('.addMessage').val('');
+  
   this.send(message);
 };
 
