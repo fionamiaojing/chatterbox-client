@@ -59,6 +59,13 @@ form input[type=text] {
     padding: 5px;
 }
 
+input {
+    margin-right: 10px;
+    width: 40%;
+    font-size: 12px;
+    padding: 5px;
+}
+
 .chat {
     padding: 5px;
     margin-bottom: 5px;
@@ -71,6 +78,10 @@ form input[type=text] {
 
 .chat:hover {
     background-color: #ddd;
+}
+
+.roomOptions {
+    float: left;
 }
 
 .spinner {
